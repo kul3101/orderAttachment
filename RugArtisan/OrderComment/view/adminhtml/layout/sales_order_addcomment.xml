@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Order comment layout
+ *
+ * @author  Kuldip Chudasama
+ * @package RugArtisan_OrderComment
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="order_history">
+            <action method="setTemplate">
+                <argument name="template" xsi:type="string">RugArtisan_OrderComment::order/view/history.phtml</argument>
+            </action>
+            <arguments>
+                <argument name="view_model" xsi:type="object">RugArtisan\OrderComment\ViewModel\Data</argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

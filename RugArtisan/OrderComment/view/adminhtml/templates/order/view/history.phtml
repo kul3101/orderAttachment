@@ -1,0 +1,238 @@
+<?php
+/**
+ * Template for order comment
+ *
+ * @author  Kuldip Chudasama
+ * @package RugArtisan_OrderComment
+ */
+
+use Magento\Sales\Block\Adminhtml\Order\View\History;
+
+/** @var History $block */
+?>
+<?php
+$viewModel = $block->getViewModel();
+
+$mediaUrl = $viewModel->getMediaUrl() . 'leads/';
+?>
+<div id="order_history_block" class="edit-order-comments">
+    <?php if ($block->canAddComment()) : ?>
+        <div class="order-history-block" id="history_form">
+
+            <div class="admin__field">
+                <label for="history_status" class="admin__field-label"><?= $block->escapeHtml(__('Status')) ?></label>
+                <div class="admin__field-control">
+                    <select name="history[status]" id="history_status" class="admin__control-select">
+                        <?php foreach ($block->getStatuses() as $_code => $_label) : ?>
+                            <option
+                                value="<?= $block->escapeHtmlAttr($_code) ?>"<?php if ($_code == $block->getOrder()->getStatus()) : ?> selected="selected"<?php endif; ?>><?= $block->escapeHtml($_label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin__field">
+                <label for="history_comment" class="admin__field-label">
+                    <?= $block->escapeHtml(__('Comment')) ?>
+                </label>
+                <div class="admin__field-control">
+                    <textarea name="history[comment]"
+                              rows="3"
+                              cols="5"
+                              id="history_comment"
+                              class="admin__control-textarea"></textarea>
+                    <div class="form_parent">
+                        <form class="form" method="post" id="frm_attachment" enctype="multipart/form-data"
+                              autocomplete="off">
+                            <div class="admin__field field field-email">
+                                <label class="label admin__field-label order-attachment"><span>Attachment</span></label>
+                                <div class="admin__field-control control">
+                                    <button type="button" class="scalable action-show-hide" id="uploadAttachment"><span><span><span>Upload Files</span></span></span>
+                                    </button>
+                                    <input type="file" id="attachment" name="attachment" style="display: none;"/>
+                                    <input type="hidden" name='form_key' value="<?= $block->getFormKey() ?>">
+                                </div>
+                                <span class="order-attachment-maxfile">+ Add files (max 3)</span>
+                            </div>
+                        </form>
+                    </div>
+                    <input type="text" name="history[files-data]" value="" id="files-data" style="display: none;"/>
+                    <div id="attachmentFiles"></div>
+                </div>
+            </div>
+
+            <div class="admin__field">
+                <div class="order-history-comments-options">
+                    <div class="admin__field admin__field-option">
+                        <?php if ($block->canSendCommentEmail()) : ?>
+                            <input name="history[is_customer_notified]"
+                                   type="checkbox"
+                                   id="history_notify"
+                                   class="admin__control-checkbox"
+                                   value="1"/>
+                            <label class="admin__field-label" for="history_notify">
+                                <?= $block->escapeHtml(__('Notify Customer by Email')) ?>
+                            </label>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="admin__field admin__field-option">
+                        <input name="history[is_visible_on_front]"
+                               type="checkbox"
+                               id="history_visible"
+                               class="admin__control-checkbox"
+                               value="1"/>
+                        <label class="admin__field-label" for="history_visible">
+                            <?= $block->escapeHtml(__('Visible on Storefront')) ?>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="order-history-comments-actions">
+                    <?= $block->getChildHtml('submit_button') ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <ul class="note-list">
+        <?php foreach ($block->getOrder()->getStatusHistoryCollection(true) as $_item) : ?>
+            <li class="note-list-item">
+                <span class="note-list-date"><?= /* @noEscape */
+                    $block->formatDate($_item->getCreatedAt(), IntlDateFormatter::MEDIUM) ?></span>
+                <span class="note-list-time"><?= /* @noEscape */
+                    $block->formatTime($_item->getCreatedAt(), IntlDateFormatter::MEDIUM) ?></span>
+                <span class="note-list-status"><?= $block->escapeHtml($_item->getStatusLabel()) ?></span>
+                <span class="note-list-customer">
+                <?= $block->escapeHtml(__('Customer')) ?>
+                    <?php if ($block->isCustomerNotificationNotApplicable($_item)) : ?>
+                        <span
+                            class="note-list-customer-notapplicable"><?= $block->escapeHtml(__('Notification Not Applicable')) ?></span>
+                    <?php elseif ($_item->getIsCustomerNotified()) : ?>
+                        <span class="note-list-customer-notified"><?= $block->escapeHtml(__('Notified')) ?></span>
+                    <?php else : ?>
+                        <span
+                            class="note-list-customer-not-notified"><?= $block->escapeHtml(__('Not Notified')) ?></span>
+                    <?php endif; ?>
+            </span>
+                <?php if ($_item->getComment()) : ?>
+                    <div
+                        class="note-list-comment"><?= $block->escapeHtml($_item->getComment(), ['b', 'br', 'strong', 'i', 'u', 'a']) ?></div>
+                <?php endif; ?>
+                <?php if ($_item->getMedia()) : ?>
+                    <div class="note-list-media">
+                        <?php $mediaFiles = explode(',', $_item->getMedia()) ?>
+                        <span class=""><?= $block->escapeHtml(__('Uploaded Images :')) ?>
+                            <?php $count = 1; ?>
+                            <?php foreach ($mediaFiles as $file) {
+                        ?>
+                                <a href="<?= $mediaUrl . $file ?>" target="_blank"><img src="<?= $mediaUrl . $file ?>"></a>
+                                <?php $count++; ?>
+                                <?php
+                    } ?>
+                </span>
+                    </div>
+                <?php endif; ?>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+    <script>
+        require(['prototype'], function () {
+            if ($('order_status')) $('order_status').update('<?= $block->escapeJs($block->escapeHtml($block->getOrder()->getStatusLabel())) ?>');
+        });
+    </script>
+</div>
+<script>
+    require(['jquery','Magento_Ui/js/modal/alert', 'mage/mage'], function ($,alert) {
+        $(document).ready(function ($) {
+            $(document).on('click', '#attachmentFiles .action-remove', function () {
+                if (window.confirm("Are you sure you want to delete?")) {
+                    var attachmentPath = $(this).attr("data-image");
+                    var divID = $(this).parents(".base-image").attr("id");
+                    var imageID = $(this).parents(".base-image").find(".hiddneattachID").val();
+
+                    $.ajax({
+                        url: "<?= $block->getUrl('ordercomment/index/delete') ?>",
+                        type: "POST",
+                        data: {filename: attachmentPath, form_key: window.FORM_KEY, imageID: imageID},
+                        showLoader: true,
+                        success: function (response) {
+                            if (response.success == true) {
+                                $(".base-image#" + divID).remove();
+                            }
+                            alert({
+						        title: $.mage.__('Success'),
+						        content: $.mage.__(response.message),
+						        actions: {
+						            always: function(){}
+						        }
+						    });
+                        },
+                        error: function (response) {
+                            alert({
+						        title: $.mage.__('Error'),
+						        content: $.mage.__(response.message),
+						        actions: {
+						            always: function(){}
+						        }
+						    });
+                        }
+                    });
+                }
+            });
+
+            $('#uploadAttachment').click(function () {
+                $('#attachment').trigger('click');
+            });
+            $("#attachment").change(function () {
+
+            	var imgcount = $(".product-image-wrapper > img").length;
+            	console.log(imgcount);
+            	if(imgcount>2){
+            		alert({
+				        title: $.mage.__('Error'),
+				        content: $.mage.__('Max 3 files allowed'),
+				        actions: {
+				            always: function(){}
+				        }
+				    });
+            		return false;	
+            	}
+                var data = $("#frm_attachment").get(0);
+                $.ajax({
+                    url: "<?= $block->getUrl('ordercomment/index/upload')?>",
+                    type: "POST",
+                    data: new FormData(data),
+                    processData: false,
+                    contentType: false,
+                    showLoader: true,
+                    success: function (response) {
+                        if (response.success) {
+                            $("#attachmentFiles").append(response.data.html);
+                            $('#frm_attachment')[0].reset();
+                            var file_option = $('#files-data').val();
+                            if (file_option === '')
+                                file_option = response.file;
+                            else
+                                file_option = file_option + ',' + response.file;
+                            $('#files-data').val(file_option);
+                        }
+                        if (response.error) {
+                            alert(response.message)
+                        }
+                    },
+                    error: function (response) {
+	                    alert({
+					        title: $.mage.__('Error'),
+					        content: $.mage.__('There is some error while upload file'),
+					        actions: {
+					            always: function(){}
+					        }
+					    });
+                        $('#frm_attachment')[0].reset();
+                    }
+                });
+            });
+        });
+    });
+</script>

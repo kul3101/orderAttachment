@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Router declaration file
+ *
+ * @author  Kuldip Chudasama
+ * @package RugArtisan_OrderComment
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="admin">
+        <route id="ordercomment" frontName="ordercomment">
+            <module name="RugArtisan_OrderComment"/>
+        </route>
+    </router>
+</config>
